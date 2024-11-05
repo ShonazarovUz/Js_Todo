@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript To-Do List</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>To-Do List</h1>
+<div id="todo-app">
+    <button id="fetch">Fetch users</button>
+    <input type="text" id="todo-input" placeholder="Add a new task..."/>
+    <button id="add-btn">Add Task</button>
+    <ul id="todo-list"></ul>
+    <span class="loader"></span>
+</div>
+
+<script>
+
+    const tasks = [];
+    function fetchData() {
+        const loader = document.querySelector('.loader');
+        loader.style.display = 'inline-block';
+
+        fetch('http://localhost:9000/api/projects')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const tasks = data.map(user => user.name);
+                renderTasks(tasks);
+                loader.style.display = 'none';
+            })
+            .catch(error => console.error(error));
+    }
+
+    function send() {
+        const data = new FormData();
+        data.append('first_name', 'Abdurashid');
+
+        fetch('http://localhost:9000/api/users', {
+            method: 'POST',
+            body: data
+        })
+            .then(response => console.info(response.data))
+            .catch(error => console.warn(error.data));
+    }
+
+    const addBtn = document.querySelector('#add-btn');
+
+    document.querySelector('#fetch')
+        .addEventListener('click', fetchData);
+
+    addBtn.addEventListener('click', addNewTask);
+
+    function addNewTask() {
+        const input = document.querySelector('#todo-input');
+        const newTask = input.value.trim();
+        send();
+
+        if (newTask.length) {
+            tasks.push(newTask);
+            renderTasks(tasks);
+            input.value = '';
+        } else {
+            alert("To'g'ri ma'lumot kiriting!");
+        }
+    }
+
+    function renderTasks(tasks) {
+        const list = document.querySelector('#todo-list');
+        list.innerHTML = '';
+
+        tasks.forEach((task, index) => {
+            const li = document.createElement('li');
+            li.textContent = task;
+
+            // Create delete button
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.classList.add('delete-btn');
+            deleteBtn.addEventListener('click', () => deleteTask(index));
+
+            li.appendChild(deleteBtn);
+            list.appendChild(li);
+        });
+    }
+
+    function deleteTask(index) {
+        tasks.splice(index, 1);  // Remove the task at the specified index
+        renderTasks(tasks);      // Re-render the tasks
+    }
+
+    renderTasks(tasks);
+
+    const input = document.querySelector('#todo-input');
+    input.addEventListener('keyup', e => e.key === 'Enter' ? addNewTask() : void 0);
+
+</script>
+</body>
+</html>
